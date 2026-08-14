@@ -1,0 +1,9 @@
+# Prérequis système de VoixLocale (binaires non installables via pip).
+#
+# Format : <binaire> <formule Homebrew> <description>
+# Les lignes vides et celles commençant par # sont ignorées.
+# Vérification / installation : scripts/check_requirements.sh [--install]
+
+uv       uv      Gestionnaire d'environnement Python, crée le venv du backend
+ffmpeg   ffmpeg  Conversion audio et encodage MP3 (libmp3lame)
+ffprobe  ffmpeg  Lecture de la durée des échantillons audio (fourni par la formule ffmpeg)
