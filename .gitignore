@@ -1,0 +1,13 @@
+.DS_Store
+.build/
+.swiftpm/
+.pycache/
+dist/
+work/
+*.zip
+*.log
+__pycache__/
+backend/__pycache__/
+
+# Les modèles, profils vocaux et MP3 sont stockés hors du dépôt dans
+# ~/Library/Application Support/VoixLocale.
