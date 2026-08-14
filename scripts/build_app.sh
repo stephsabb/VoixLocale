@@ -16,5 +16,16 @@ cp backend/app.py backend/requirements.txt backend/run_backend.sh "${CONTENTS}/R
 cp assets/AppIcon.icns assets/Assets.car "${CONTENTS}/Resources/"
 chmod +x "${CONTENTS}/Resources/backend/run_backend.sh"
 cp scripts/Info.plist "${CONTENTS}/Info.plist"
-codesign --force --deep --sign - "${APP_DIR}"
+IDENTITY="${CODESIGN_IDENTITY:--}"
+# Le serveur de timestamp Apple n'est utile que pour la notarisation ; inutile en ad-hoc.
+if [[ "${IDENTITY}" == "-" ]]; then
+  TIMESTAMP_FLAG="--timestamp=none"
+else
+  TIMESTAMP_FLAG="--timestamp"
+fi
+# --options runtime + l'entitlement micro sont indissociables : avec le Hardened Runtime
+# et sans com.apple.security.device.audio-input, le processus est tué à l'accès micro.
+codesign --force --options runtime "${TIMESTAMP_FLAG}" \
+  --entitlements scripts/VoixLocale.entitlements \
+  --sign "${IDENTITY}" "${APP_DIR}"
 echo "Application créée : ${APP_DIR}"
