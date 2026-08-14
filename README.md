@@ -1,0 +1,59 @@
+# VoixLocale
+
+![VoixLocale](assets/VoixLocaleIcon-alpha.png)
+
+VoixLocale est une application macOS native qui transforme un texte en MP3 avec
+une voix de référence. La synthèse et les profils vocaux restent sur le Mac.
+L’icône originale combine une onde vocale et un profil humain.
+
+## Fonctionnalités du MVP
+
+- enregistrement d’un échantillon avec le microphone ;
+- consentement explicite avant la création d’une voix ;
+- import TXT, PDF et DOCX, ou saisie directe ;
+- synthèse française avec Qwen3-TTS 1.7B BF16 et Apple MLX ;
+- clonage par empreinte vocale, sans réinjection du texte d’échantillonnage ;
+- découpage automatique des textes longs ;
+- débit réglable (1,10× par défaut) et hésitations légères optionnelles ;
+- réduction douce du bruit de fond et nettoyage des silences entre segments ;
+- contrôles de lecture, pause, reprise et arrêt dans l’interface ;
+- navigation par onglets illustrés avec pictogrammes au-dessus des libellés ;
+- lecture et export MP3 VBR haute qualité ;
+- stockage local dans `~/Library/Application Support/VoixLocale`.
+
+## Construire l’application
+
+Prérequis : macOS 14 ou ultérieur, Apple Silicon, Xcode, `uv` et FFmpeg.
+
+```bash
+brew install uv ffmpeg
+./scripts/build_app.sh
+open ./dist/VoixLocale.app
+```
+
+L’application résultante se trouve dans `dist/VoixLocale.app`. Au premier
+lancement, le service local crée son environnement Python. Le modèle MLX est
+téléchargé lors de la première génération ; les lancements suivants peuvent se
+faire hors ligne.
+
+Pour le développement :
+
+```bash
+./scripts/run_dev.sh
+```
+
+## Confidentialité
+
+Le serveur écoute uniquement sur `127.0.0.1`. Les enregistrements et sorties ne
+sont envoyés à aucun service distant. Le téléchargement initial des dépendances
+et du modèle est la seule étape nécessitant Internet.
+
+Ne clonez que votre propre voix ou une voix pour laquelle vous disposez d’une
+autorisation explicite.
+
+## État du projet
+
+VoixLocale est actuellement distribué en version bêta. L’application est
+gratuite et son code source est accessible publiquement. Aucune licence de
+réutilisation n’est accordée tant qu’un fichier `LICENSE` n’a pas été ajouté au
+dépôt.
