@@ -1,3 +1,4 @@
+import AppKit
 import AVFoundation
 import Foundation
 
@@ -8,25 +9,66 @@ final class VoiceRecorder: NSObject, ObservableObject, AVAudioRecorderDelegate {
     @Published var level: Double = 0
     @Published var recordingURL: URL?
     @Published var errorMessage: String?
+    /// Vrai lorsque l’autorisation micro a été refusée : l’interface propose alors d’ouvrir les Réglages Système.
+    @Published var needsMicrophoneSettings = false
+    /// Vrai pendant que la boîte de dialogue d’autorisation macOS est affichée, pour empêcher
+    /// un second appui sur « Enregistrer » de relancer une demande en parallèle.
+    @Published var isRequestingAccess = false
+
+    private static let settingsURL = URL(
+        string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone"
+    )
 
     private var recorder: AVAudioRecorder?
     private var timer: Timer?
     private var highestPower: Float = -160
 
+    var authorizationStatus: AVAuthorizationStatus {
+        AVCaptureDevice.authorizationStatus(for: .audio)
+    }
+
     func toggle() {
         isRecording ? stop() : requestAndStart()
     }
 
+    func openSystemSettings() {
+        guard let url = Self.settingsURL else { return }
+        NSWorkspace.shared.open(url)
+    }
+
     private func requestAndStart() {
-        AVCaptureDevice.requestAccess(for: .audio) { [weak self] granted in
-            Task { @MainActor in
-                guard granted else {
-                    self?.errorMessage = "L’accès au microphone est nécessaire pour créer une voix."
-                    return
+        guard !isRequestingAccess else { return }
+        errorMessage = nil
+        needsMicrophoneSettings = false
+
+        switch authorizationStatus {
+        case .authorized:
+            start()
+        case .notDetermined:
+            isRequestingAccess = true
+            AVCaptureDevice.requestAccess(for: .audio) { [weak self] granted in
+                Task { @MainActor in
+                    guard let self else { return }
+                    self.isRequestingAccess = false
+                    guard granted else {
+                        self.denyAccess()
+                        return
+                    }
+                    self.start()
                 }
-                self?.start()
             }
+        case .denied, .restricted:
+            denyAccess()
+        @unknown default:
+            denyAccess()
         }
+    }
+
+    private func denyAccess() {
+        needsMicrophoneSettings = true
+        errorMessage = "L’accès au microphone est nécessaire pour créer une voix. "
+            + "Autorisez VoixLocale dans Réglages Système › Confidentialité et sécurité › Microphone, "
+            + "puis relancez l’enregistrement."
     }
 
     private func start() {

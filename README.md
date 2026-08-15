@@ -42,6 +42,24 @@ Pour le développement :
 ./scripts/run_dev.sh
 ```
 
+Ce script construit toujours le bundle `.app` avant de le lancer : `swift run`
+produit un exécutable nu, sans `Info.plist`, et macOS tue alors le processus dès
+qu'il demande l'accès au microphone.
+
+### Autorisation microphone
+
+L'application est signée avec le Hardened Runtime, ce qui rend l'entitlement
+`com.apple.security.device.audio-input` (dans `scripts/VoixLocale.entitlements`)
+obligatoire pour enregistrer une voix.
+
+macOS met en cache sa décision d'autorisation par identifiant de bundle **et par
+signature**. Après avoir resigné l'application, une autorisation refusée
+auparavant reste appliquée ; pour repartir d'un état neuf :
+
+```bash
+tccutil reset Microphone fr.voixlocale.app
+```
+
 ## Confidentialité
 
 Le serveur écoute uniquement sur `127.0.0.1`. Les enregistrements et sorties ne

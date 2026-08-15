@@ -234,10 +234,23 @@ private struct VoicesView: View {
                         Label(recorder.isRecording ? "Arrêter" : "Enregistrer", systemImage: recorder.isRecording ? "stop.fill" : "mic.fill")
                     }
                     .buttonStyle(.borderedProminent).tint(recorder.isRecording ? .red : .indigo).controlSize(.large)
+                    .disabled(recorder.isRequestingAccess)
                     Text(String(format: "%.1f s", recorder.duration)).monospacedDigit()
                     if recorder.recordingURL != nil && !recorder.isRecording {
                         Label("Échantillon prêt", systemImage: "checkmark.circle.fill").foregroundStyle(.green)
                     }
+                }
+                if recorder.needsMicrophoneSettings {
+                    HStack(spacing: 10) {
+                        Image(systemName: "mic.slash.fill").foregroundStyle(.orange)
+                        Text("VoixLocale n’a pas accès au microphone.")
+                            .font(.caption)
+                        Button("Ouvrir les Réglages") { recorder.openSystemSettings() }
+                            .buttonStyle(.link)
+                    }
+                    .padding(10)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(.quaternary.opacity(0.45), in: RoundedRectangle(cornerRadius: 9))
                 }
                 HStack(spacing: 10) {
                     Text("Niveau micro").font(.caption).foregroundStyle(.secondary)
