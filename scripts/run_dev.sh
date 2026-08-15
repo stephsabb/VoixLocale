@@ -7,4 +7,4 @@ PROJECT_DIR="${0:A:h:h}"
 cd "${PROJECT_DIR}"
 zsh scripts/build_app.sh
 open "${PROJECT_DIR}/dist/VoixLocale.app"
-echo "Logs : Console.app, ou tail -f ~/Library/Logs/voixlocale-backend.log"
+echo "Logs : Console.app, ou tail -f ~/Library/Logs/VoixLocale.log"

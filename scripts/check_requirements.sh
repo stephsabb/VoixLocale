@@ -17,7 +17,7 @@ INSTALL=0
 [[ "${1:-}" == "--install" ]] && INSTALL=1
 
 # Homebrew n'exporte pas toujours son PATH aux processus lancés par launchd/Finder.
-for dir in /opt/homebrew/bin /usr/local/bin; do
+for dir in /opt/homebrew/bin /usr/local/bin "${HOME}/.local/bin"; do
   [[ -d "${dir}" && ":${PATH}:" != *":${dir}:"* ]] && PATH="${dir}:${PATH}"
 done
 export PATH
