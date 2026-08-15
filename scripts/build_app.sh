@@ -12,9 +12,12 @@ swift build --disable-sandbox -c release
 rm -rf "${APP_DIR}"
 mkdir -p "${CONTENTS}/MacOS" "${CONTENTS}/Resources/backend"
 cp ".build/release/VoixLocale" "${CONTENTS}/MacOS/VoixLocale"
-cp backend/app.py backend/requirements.txt backend/run_backend.sh "${CONTENTS}/Resources/backend/"
+cp backend/app.py backend/requirements.txt backend/run_backend.sh \
+   backend/system-requirements.txt "${CONTENTS}/Resources/backend/"
+cp scripts/check_requirements.sh "${CONTENTS}/Resources/backend/"
 cp assets/AppIcon.icns assets/Assets.car "${CONTENTS}/Resources/"
-chmod +x "${CONTENTS}/Resources/backend/run_backend.sh"
+chmod +x "${CONTENTS}/Resources/backend/run_backend.sh" \
+         "${CONTENTS}/Resources/backend/check_requirements.sh"
 cp scripts/Info.plist "${CONTENTS}/Info.plist"
 IDENTITY="${CODESIGN_IDENTITY:--}"
 # Le serveur de timestamp Apple n'est utile que pour la notarisation ; inutile en ad-hoc.

@@ -23,10 +23,22 @@ L’icône originale combine une onde vocale et un profil humain.
 
 ## Construire l’application
 
-Prérequis : macOS 14 ou ultérieur, Apple Silicon, Xcode, `uv` et FFmpeg.
+Prérequis : macOS 14 ou ultérieur, Apple Silicon, Xcode.
+
+Les binaires système requis sont déclarés dans `backend/system-requirements.txt`,
+pendant système du `requirements.txt` Python. Pour les vérifier ou les installer :
 
 ```bash
-brew install uv ffmpeg
+./scripts/check_requirements.sh            # rapport
+./scripts/check_requirements.sh --install  # installe ce qui manque via Homebrew
+```
+
+`backend/run_backend.sh` lance cette vérification au démarrage : si FFmpeg manque,
+le backend s'arrête immédiatement avec un message explicite, au lieu d'échouer plus
+tard sur une erreur 500 au moment d'enrôler une voix ou de générer un MP3.
+
+```bash
+./scripts/check_requirements.sh --install
 ./scripts/build_app.sh
 open ./dist/VoixLocale.app
 ```

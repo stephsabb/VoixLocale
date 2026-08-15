@@ -10,6 +10,12 @@ export UV_CACHE_DIR="${SUPPORT_DIR}/cache/uv"
 export UV_PYTHON_INSTALL_DIR="${SUPPORT_DIR}/runtime/python"
 export HF_HOME="${SUPPORT_DIR}/models"
 
+# Échouer tôt et lisiblement si ffmpeg/ffprobe manquent, plutôt qu'au moment de
+# générer un MP3 ou d'enrôler une voix.
+if [[ -x "${SCRIPT_DIR}/check_requirements.sh" ]]; then
+  "${SCRIPT_DIR}/check_requirements.sh" || exit 1
+fi
+
 if [[ -x "/opt/homebrew/bin/uv" ]]; then
   UV_BIN="/opt/homebrew/bin/uv"
 elif [[ -x "${HOME}/.local/bin/uv" ]]; then
