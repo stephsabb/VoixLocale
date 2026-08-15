@@ -16,29 +16,38 @@ final class BackendService: @unchecked Sendable {
     static let shared = BackendService()
     private let baseURL = URL(string: "http://127.0.0.1:8765")!
     private var process: Process?
+    private var startupError: Error?
+    private let logURL = FileManager.default.homeDirectoryForCurrentUser
+        .appendingPathComponent("Library/Logs/VoixLocale.log")
 
     func start() {
         guard process == nil else { return }
+        startupError = nil
         let candidates = [
             Bundle.main.resourceURL?.appendingPathComponent("backend/run_backend.sh"),
             URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
                 .appendingPathComponent("backend/run_backend.sh")
         ].compactMap { $0 }
-        guard let script = candidates.first(where: { FileManager.default.fileExists(atPath: $0.path) }) else { return }
+        guard let script = candidates.first(where: { FileManager.default.fileExists(atPath: $0.path) }) else {
+            startupError = BackendError.message("Le lanceur du moteur local est introuvable dans l’application.")
+            return
+        }
 
         let task = Process()
         task.executableURL = URL(fileURLWithPath: "/bin/zsh")
         task.arguments = [script.path]
-        let logURL = FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent("Library/Logs/VoixLocale.log")
         FileManager.default.createFile(atPath: logURL.path, contents: nil)
         if let handle = try? FileHandle(forWritingTo: logURL) {
             _ = try? handle.seekToEnd()
             task.standardOutput = handle
             task.standardError = handle
         }
-        try? task.run()
-        process = task
+        do {
+            try task.run()
+            process = task
+        } catch {
+            startupError = error
+        }
     }
 
     func stop() {
@@ -50,9 +59,28 @@ final class BackendService: @unchecked Sendable {
     func waitUntilReady(seconds: Int = 900) async throws {
         for _ in 0..<(seconds * 2) {
             if (try? await health()) != nil { return }
+            if let startupError { throw startupError }
+            if let process, !process.isRunning {
+                throw BackendError.message(backendExitMessage())
+            }
             try await Task.sleep(for: .milliseconds(500))
         }
         throw BackendError.unavailable
+    }
+
+    private func backendExitMessage() -> String {
+        let fallback = "Le moteur local s’est arrêté au démarrage. Vérifiez les prérequis avec scripts/check_requirements.sh."
+        guard let data = try? Data(contentsOf: logURL),
+              let contents = String(data: data.suffix(4_000), encoding: .utf8) else {
+            return fallback
+        }
+        let details = contents
+            .split(separator: "\n")
+            .suffix(12)
+            .joined(separator: "\n")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !details.isEmpty else { return fallback }
+        return "Le moteur local s’est arrêté au démarrage :\n\n\(details)"
     }
 
     func health() async throws -> HealthResponse {
